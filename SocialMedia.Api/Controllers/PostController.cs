@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using SocialMedia.Api.Responses;
 using SocialMedia.Core.DTOs;
 using SocialMedia.Core.Entities;
 using SocialMedia.Core.Interfaces;
@@ -35,10 +36,12 @@ namespace SocialMedia.Api.Controllers
             //    Image = x.Image,
             //    UserId = x.UserId
             //});
-            var postDto = _mapper.Map<IEnumerable<PostDTO>>(posts);
-            return Ok(postDto);
+            var postDtos = _mapper.Map<IEnumerable<PostDTO>>(posts);
+            var response = new ApiResponse<IEnumerable<PostDTO>>(postDtos);
+            return Ok(response);
         }
 
+        
         [HttpGet("{id}")]
         public async Task<IActionResult> GetPost(int id)
         {
@@ -52,7 +55,8 @@ namespace SocialMedia.Api.Controllers
             //    UserId = post.UserId
             //};
             var postDto = _mapper.Map<PostDTO>(post);
-            return Ok(postDto);
+            var response = new ApiResponse<PostDTO>(postDto);
+            return Ok(response);
         }
 
         [HttpPost]
@@ -66,10 +70,32 @@ namespace SocialMedia.Api.Controllers
             //    UserId = postDto.UserId
             //};
             var post = _mapper.Map<Post>(postDto);
+
             await _postRepository.InsertPost(post);
+
+            postDto = _mapper.Map<PostDTO>(post);
+
+            var response = new ApiResponse<PostDTO>(postDto) {;
+
+            return Ok(response);
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> Put(int id, PostDTO postDto)
+        {
+            var post = _mapper.Map<Post>(postDto);
+            post.PostId = id;
+            var result = await _postRepository.UpdatePost(post);
+            var response = new ApiResponse<bool>(result);
             return Ok(post);
         }
 
-
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var result = await _postRepository.DeletePost(id);
+            var response = new ApiResponse<bool>(result);
+            return Ok(response);
+        }
     }
 }
