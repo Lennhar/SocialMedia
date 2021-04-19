@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SocialMedia.Core.Interfaces;
+using SocialMedia.Core.Services;
 using SocialMedia.Infraestructure.Data;
 using SocialMedia.Infraestructure.Filters;
 using SocialMedia.Infraestructure.Repositories;
@@ -32,7 +33,10 @@ namespace SocialMedia.Api
         public void ConfigureServices(IServiceCollection services)
         {
             //Newtonsoftjson, ignorar referencia circular
-            services.AddControllers().AddNewtonsoftJson(options =>
+            services.AddControllers(options=>
+            {
+                options.Filters.Add<ValidationFilter>();
+            }).AddNewtonsoftJson(options =>
             {
                 options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
             })
@@ -49,18 +53,26 @@ namespace SocialMedia.Api
             //Cadena de conexión pertenece al dbcontext
             services.AddDbContext<SocialMediaContext>(options =>
             options.UseSqlServer(Configuration.GetConnectionString("LocalDb")));
+
+            //Dependencia de interfaz de service y IService
+            services.AddTransient<IPostService, PostService>();
+
             //Inyección de dependencias, es trabajar con abstraciones Lennhar Ortega 17/03
-            services.AddTransient<IPostRepository, PostRepository>();
+            // services.AddTransient<IPostRepository, PostRepository>();
+            //services.AddTransient<IUserRepository, UserRepository>();
+            //Este reemplaza los repositorios post y user
+            services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
+            services.AddTransient<IUnitOfWork, UnitOfWork>();
 
             //Usamos el validationFilter de infraestructure como filtro global, ya que quitamos la validación automatica, así se usaba antes
-            services.AddMvc(option =>
+            services.AddMvc(options =>
             {
-                option.Filters.Add<ValidationFilter>();
+                options.Filters.Add<GlobalExceptionFilter>();
             })
                 //Se agrego fluentValidator para usar las validaciones en el proyecto infraestructure
-                .AddFluentValidation(optins =>
+                .AddFluentValidation(options =>
                 {
-                    optins.RegisterValidatorsFromAssemblies(AppDomain.CurrentDomain.GetAssemblies());
+                    options.RegisterValidatorsFromAssemblies(AppDomain.CurrentDomain.GetAssemblies());
                 });
         }
 

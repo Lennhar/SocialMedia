@@ -11,9 +11,10 @@ namespace SocialMedia.Infraestructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<User> builder)
         {
-            builder.HasKey(e => e.UserId);
+            //Hereda de el BaseEntity
+            builder.HasKey(e => e.Id);
 
-            builder.Property(e => e.UserId)
+            builder.Property(e => e.Id)
             .HasColumnName("IdUsuario");
 
             builder.Property(e => e.FirstName)

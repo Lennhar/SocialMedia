@@ -9,10 +9,10 @@ namespace SocialMedia.Infraestructure.Data.Configurations
         public void Configure(EntityTypeBuilder<Post> builder)
         {
             builder.ToTable("Publicacion");
+            //Hereda del BaseEntity
+            builder.HasKey(e => e.Id);
 
-            builder.HasKey(e => e.PostId);
-
-            builder.Property(e => e.PostId)
+            builder.Property(e => e.Id)
             .HasColumnName("IdPublicacion");
 
             builder.Property(e => e.UserId)
